@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
-
+#include <map>
 #include "linux_parser.h"
 
 using std::stof;
@@ -63,14 +63,54 @@ vector<int> LinuxParser::Pids() {
     }
   }
   closedir(directory);
-  return pids;
+ return pids;
 }
 
 // TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { return 0.0; }
+float LinuxParser::MemoryUtilization() { 
+  
+  string mem_total_str, mem_free_str, line, word;
+  std::ifstream stream(kProcDirectory + kMeminfoFilename);
+  // If stream successfully opened
+  if (stream.is_open()) {
+
+	// Extract the number of kB from MemTotal:
+	std::getline(stream, line);
+	std::istringstream mem_total_stream(line);
+  	mem_total_stream >> word >> mem_total_str;
+
+	// Extract the number of kB from MemFree:
+	std::getline(stream, line);
+	std::istringstream mem_free_stream(line);
+	mem_free_stream >> word >> mem_free_str;
+ 	
+  }
+
+  float mem_total = std::stof(mem_total_str);
+  float mem_free = std::stof(mem_free_str);
+	
+  return (mem_total - mem_free) / mem_total; 
+
+}
 
 // TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+long LinuxParser::UpTime() { 
+
+  string sys_uptime, line;
+  std::ifstream stream(kProcDirectory + kUptimeFilename);
+  // If stream successfully opened
+  if (stream.is_open()) {
+	// While there are characters still left to read
+	std::getline(stream, line);
+	std::istringstream linestream(line);
+  	// Extract the first word of the line
+	linestream >> sys_uptime;
+   }
+	// Convert the string to an integer
+ 
+  return std::stol(sys_uptime); 
+
+}
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
@@ -86,13 +126,75 @@ long LinuxParser::ActiveJiffies() { return 0; }
 long LinuxParser::IdleJiffies() { return 0; }
 
 // TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+//vector<string> LinuxParser::CpuUtilization() { return {}; }
+std::map<std::string, float> LinuxParser::CpuUtilization() {
+
+  string line, word, user_str, nice_str, sys_str, idle_str;
+  
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  
+  // If stream successfully opened
+  if (stream.is_open()) {
+    // While there are characters still left to read
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+  	
+    // Extract the cpu utilizaiton values from the line
+    linestream >> word >> user_str >> nice_str >> sys_str >> idle_str;
+  }
+  
+  return { {"user", stof(user_str)}, {"nice", stof(nice_str)}, {"system", stof(sys_str)}, {"idle", stof(idle_str)} };
+}
 
 // TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
+int LinuxParser::TotalProcesses() { 
+
+  string procs_str, line, word;
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  // If stream successfully opened
+  if (stream.is_open()) {
+	// While there are characters still left to read
+	while(std::getline(stream, line)) {
+		std::istringstream linestream(line);
+  		// Extract the first word of the line
+		linestream >> word;
+			// If the word is "procs_running"
+			if(word == "processes"){
+				// Extract the second word and exit the while loop
+				linestream >> procs_str;
+				break;
+			}
+
+  	}
+   }
+	// Convert the string to an integer
+   return std::stoi(procs_str); 
+}
 
 // TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() { return 0; }
+int LinuxParser::RunningProcesses() { 
+
+  string procs_str, line, word;
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  // If stream successfully opened
+  if (stream.is_open()) {
+	// While there are characters still left to read
+	while(std::getline(stream, line)) {
+		std::istringstream linestream(line);
+  		// Extract the first word of the line
+		linestream >> word;
+			// If the word is "procs_running"
+			if(word == "procs_running"){
+				// Extract the second word and exit the while loop
+				linestream >> procs_str;
+				break;
+			}
+
+  	}
+   }
+	// Convert the string to an integer
+   return std::stoi(procs_str); 
+}
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
