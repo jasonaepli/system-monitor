@@ -4,7 +4,6 @@
 #include <string>
 /*
 Basic class for Process representation
-It contains relevant attributes as shown below
 */
 class Process {
  public:
@@ -13,19 +12,19 @@ class Process {
     cmd_ = LinuxParser::Command(pid);
     user_ = LinuxParser::User(pid);
   }
-  int Pid();                               // TODO: See src/process.cpp
-  std::string User();                      // TODO: See src/process.cpp
-  std::string Command();                   // TODO: See src/process.cpp
-  float CpuUtilization();                  // TODO: See src/process.cpp
-  std::string Ram();                       // TODO: See src/process.cpp
-  long int UpTime();                       // TODO: See src/process.cpp
-  bool operator<(Process const& a) const;  // TODO: See src/process.cpp
-
-  // TODO: Declare any necessary private members
+  int Pid();                              
+  std::string User();                     
+  std::string Command();                  
+  float CpuUtilization() const;                 
+  std::string Ram();                       
+  long int UpTime();                      
+  bool operator<(Process const& a) const;
+ 
+  // Declare private members
  private:
-  int pid_;
-  std::string user_;
-  std::string cmd_;
+  int pid_;		// Process ID
+  std::string user_;	// User that started process
+  std::string cmd_;	// Command that started the process
 };
 
 #endif

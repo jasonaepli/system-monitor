@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include "linux_parser.h"
+#include <cmath>
 
 using std::stof;
 using std::string;
@@ -113,17 +114,17 @@ long LinuxParser::UpTime() {
 }
 
 // TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
+//long LinuxParser::Jiffies() { return 0; }
 
 // TODO: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
+//long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
 
 // TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+//long LinuxParser::ActiveJiffies() { return 0; }
 
 // TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
+//long LinuxParser::IdleJiffies() { return 0; }
 
 // Read and return CPU utilization
 std::map<std::string, float> LinuxParser::CpuUtilization() {
@@ -216,8 +217,7 @@ string LinuxParser::Command(int pid) {
 // Read and return the memory used by a process
 string LinuxParser::Ram(int pid) { 
   
-  string vm_str, line, word;
-
+  string vm_str, line, word, vm_size_mb; 
   std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatusFilename);
 
   // If stream successfully opened
@@ -239,12 +239,13 @@ string LinuxParser::Ram(int pid) {
 	}
       }
    }
-  
-  // Convert from kB to MB
-  //string vm_size_mb = std::to_string( stoi(vm_str) / 1000);
-  
-  return vm_str; 
-
+  if(vm_str.size() > 0) {
+    // Convert from kB to MB
+    vm_size_mb = std::to_string( static_cast<int>( std::round( std::stof(vm_str) / 1000.0 ) ) );
+  }else
+   vm_size_mb = "0";
+ 
+  return vm_size_mb;
 }
 
 // Read and return the user ID associated with a process
@@ -316,9 +317,27 @@ string LinuxParser::User(int pid) {
  
 }
 
-// TODO: Read and return the uptime of a process
+// Read and return the uptime of a process
 long LinuxParser::UpTime(int pid) { 
 
-  return 0;
+  string ticks_str, line, word;
+
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+
+  // If stream successfully opened
+  if (stream.is_open()) {
+
+    // While there are characters still left to read
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+
+    for(int i = 0; i < 22; i++)  // Extract the 22nd token from the line in the stat file
+      linestream >> ticks_str;
+
+   }
+  // Conver the clock ticks to seconds using the conversion in unistd.h
+  long uptime = std::stol(ticks_str) / sysconf(_SC_CLK_TCK);
+ 
+  return uptime;
 
 }

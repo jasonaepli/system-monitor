@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 
-// TODO: Return the aggregate CPU utilization
+// Return the aggregate CPU utilization
 float Processor::Utilization() { 
 
   std::map<std::string, float> util_map = LinuxParser::CpuUtilization();
